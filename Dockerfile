@@ -1,6 +1,6 @@
 # Multi-stage build for smaller image size
 # Stage 1: Build the application
-FROM maven:3.8.4-openjdk-21-slim AS build
+FROM maven:3.9.9-eclipse-temurin-21 AS build
 WORKDIR /app
 
 # Copy pom.xml and download dependencies (caching layer)
@@ -12,7 +12,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Stage 2: Create the runtime image
-FROM openjdk:21-slim
+FROM eclipse-temurin:21-jdk-jammy
 WORKDIR /app
 
 # Create a non-root user for security
