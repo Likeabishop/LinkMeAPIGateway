@@ -1,0 +1,272 @@
+openapi: 3.0.3
+info:
+  title: LiveAuth Service API
+  version: 1.0.0
+
+paths:
+  /auth/register:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreationRequest'
+      responses:
+        '201':
+          description: User created successfully
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponseDTO'
+        '400':
+          description: Validation failed
+
+  /auth/register-admin:
+    post:
+      summary: Register a new admin user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreationRequest'
+      responses:
+        '201':
+          description: Admin created successfully
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponseDTO'
+        '400':
+          description: Validation failed
+
+  /auth/login:
+    post:
+      summary: Authenticate user and return tokens
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          description: Bad request
+        '401':
+          description: Invalid credentials
+
+  /auth/logout:
+    post:
+      summary: Invalidate user tokens
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogoutRequest'
+      responses:
+        '200':
+          description: Logged out successfully
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Validation failed
+
+  /auth/refresh-token:
+    post:
+      summary: Refresh access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          description: Invalid or expired refresh token
+
+  /auth/verify-email:
+    get:
+      summary: Verify user email address
+      parameters:
+        - name: verificationToken
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Email verified, redirecting
+          headers:
+            Location:
+              schema:
+                type: string
+        '400':
+          description: Invalid or expired token
+
+  /auth/request-password-reset:
+    post:
+      summary: Request a password reset email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequest'
+      responses:
+        '200':
+          description: Reset email sent if account exists
+        '400':
+          description: Validation failed
+
+  /auth/reset-password:
+    post:
+      summary: Reset password using token
+      parameters:
+        - name: resetPasswordToken
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewPasswordRequest'
+      responses:
+        '200':
+          description: Password reset successfully
+        '400':
+          description: Invalid token or validation failed
+
+components:
+  schemas:
+    UserCreationRequest:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - email
+        - password
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        middleNames:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        identificationNumber:
+          type: string
+        createdBy:
+          type: string
+
+    UserResponseDTO:
+      type: object
+      properties:
+        name:
+          type: string
+        middleNames:
+          type: string
+        surname:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum:
+            - USER
+            - ADMIN   # replace with your actual Role enum values
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - INACTIVE
+            - SUSPENDED  # replace with your actual UserStatus enum values
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    TokenResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+
+    LogoutRequest:
+      type: object
+      required:
+        - accessToken
+        - refreshToken
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+
+    RefreshTokenRequest:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+
+    PasswordResetRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+
+    NewPasswordRequest:
+      type: object
+      required:
+        - password
+      properties:
+        password:
+          type: string
+          minLength: 8

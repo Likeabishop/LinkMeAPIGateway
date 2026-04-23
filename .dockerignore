@@ -1,0 +1,38 @@
+# Build artifacts
+target/
+*.jar
+*.war
+*.log
+
+# IDE files
+.idea/
+*.iml
+.classpath
+.project
+.settings
+.vscode/
+
+# Environment files
+.env
+*.env
+
+# Git
+.git
+.gitignore
+
+# Maven wrapper
+.mvn/wrapper/maven-wrapper.jar
+
+# Logs
+logs/
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Temp files
+*.tmp
+*.swp
+*~
+.DS_Store

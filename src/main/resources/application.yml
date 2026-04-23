@@ -1,0 +1,35 @@
+# Conversion to YAML from Properties formar report
+# Warnings:
+# - The yaml file had comments which are lost in the refactoring!
+
+app:
+  jwt:
+    secret: ${MY_SECRET_KEY}
+
+server:
+  port: ${SPRING_SERVER_PORT}
+
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: auth-service
+          uri: ${AUTH_SERVICE_ROUTES}
+          predicates: 
+            - Path=/auth/**
+          filters: 
+            - name: CircutBreaker
+              args:
+                name: authService
+                fallbackUri: forward:/fallback/auth
+
+        - id: protected-service
+          uri: ${PROTECTED_SERVICE_ROUTES}
+          predicates:
+          - Path=/api/**
+          filters:
+            - name: JwtAuthenticationFilter
+            - name: CircuitBreaker
+              args:
+                name: protectedService
+                fallbackUri:  forward:/fallback/api

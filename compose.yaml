@@ -1,0 +1,103 @@
+version: '3.8'
+
+services:
+  linkme-gateway:
+    build: .
+    container_name: linkme-gateway
+    ports:
+      - "${SPRING_SERVER_PORT}:8080"
+    env_file:
+      - .env
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - APP_JWT_SECRET=${MY_SECRET_KEY}
+      - AUTH_SERVICE_ROUTES=http://auth-service:8081
+      - PROTECTED_SERVICE_ROUTES=http://user-service:8082
+    depends_on:
+      - auth-service
+      - user-service
+    networks:
+      - linkme-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  auth-service:
+    image: your-auth-service:latest
+    container_name: auth-service
+    expose:
+      - "8081"
+    env_file:
+      - .env
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATABASE_HOST=postgres
+      - SPRING_DATABASE_PASSWORD=${SPRING_DATABASE_PASSWORD}
+      - MY_SECRET_KEY=${MY_SECRET_KEY}
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - linkme-network
+
+  user-service:
+    image: your-user-service:latest
+    container_name: user-service
+    ports:
+      - "8082:8082"
+    env_file:
+      - .env
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATABASE_HOST=postgres
+      - SPRING_DATABASE_PASSWORD=${SPRING_DATABASE_PASSWORD}
+    depends_on:
+      - postgres
+    networks:
+      - linkme-network
+
+  postgres:
+    image: postgres:15
+    container_name: linkme-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${SPRING_DATABASE_NAME}
+      POSTGRES_USER: ${SPRING_DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${SPRING_DATABASE_PASSWORD}
+    ports:
+      - "5433:5432"  # Host port 5433 -> Container port 5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - linkme-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${SPRING_DATABASE_USERNAME} -d ${SPRING_DATABASE_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    container_name: linkme-redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - linkme-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  linkme-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
