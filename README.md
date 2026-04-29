@@ -201,7 +201,7 @@ LinkMeAPIGateway/
 │   ├── main/
 │   │   ├── java/com/example/LinkMeApiGateway/
 │   │   │   ├── config/         # Security & gateway route configuration
-│   │   │   ├── filter/         # JWT authentication filters
+│   │   │   ├── security/         # JWT authentication filters
 │   │   │   └── ...
 │   │   └── resources/
 │   │       └── application.yml # Route definitions & app config
